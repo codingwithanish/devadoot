@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "DevaDoot",
+  "version": "1.0.0",
+  "description": "Agent-Orchestrated Monitoring with Interactive Chat",
+  "action": {
+    "default_title": "DevaDoot"
+  },
+  "icons": {
+    "16": "icons/gray-16.png",
+    "32": "icons/gray-32.png",
+    "48": "icons/gray-48.png",
+    "128": "icons/gray-128.png"
+  },
+  "background": {
+    "service_worker": "bg/service-worker.ts",
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "options/index.html",
+    "open_in_tab": true
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "cookies",
+    "activeTab",
+    "tabCapture",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/monitor-ui.ts", "content/monitor-api.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["popup/index.html", "popup/*", "icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "minimum_chrome_version": "127"
+}

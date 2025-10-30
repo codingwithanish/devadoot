@@ -1,0 +1,96 @@
+// Prisma schema for DevaDoot
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id              String            @id @default(uuid())
+  name            String
+  source          AgentSource
+  marketplaceId   String?
+  customEndpoint  String?
+  monitoring      MonitoringType
+  welcomeMessage  String            @default("")
+  ruleNL          String
+  ruleStructured  Json?
+  collectors      Json              // {har:true,...}
+  priority        Int               @default(100)
+  sites           AgentSite[]
+  patterns        AgentUrlPattern[]
+  cases           Case[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model AgentSite {
+  agentId String
+  site    String
+  agent   Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@id([agentId, site])
+}
+
+model AgentUrlPattern {
+  agentId String
+  pattern String
+  agent   Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@id([agentId, pattern])
+}
+
+model Case {
+  id           String     @id @default(uuid())
+  agent        Agent?     @relation(fields: [agentId], references: [id])
+  agentId      String?
+  url          String
+  site         String
+  ruleSnapshot Json
+  status       CaseStatus @default(open)
+  artifacts    Artifact[]
+  createdAt    DateTime   @default(now())
+  closedAt     DateTime?
+  updatedAt    DateTime   @updatedAt
+}
+
+model Artifact {
+  id        String   @id @default(uuid())
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  caseId    String
+  kind      String
+  s3Key     String
+  s3Url     String
+  sizeBytes BigInt?
+  createdAt DateTime @default(now())
+}
+
+model MarketplaceAgent {
+  id           String  @id
+  name         String
+  type         String
+  description  String?
+  chatEndpoint String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum AgentSource {
+  marketplace
+  custom
+}
+
+enum MonitoringType {
+  UI
+  API
+  Both
+}
+
+enum CaseStatus {
+  open
+  closed
+}

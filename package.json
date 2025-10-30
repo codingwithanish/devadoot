@@ -1,0 +1,28 @@
+{
+  "name": "devadoot",
+  "version": "1.0.0",
+  "description": "Agent-Orchestrated Monitoring with Interactive Chat",
+  "private": true,
+  "workspaces": [
+    "extension",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "pnpm --filter server dev",
+    "dev:extension": "pnpm --filter extension dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "prettier": "^3.1.1",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
