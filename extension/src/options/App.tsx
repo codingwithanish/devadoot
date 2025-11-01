@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AgentForm } from './components/AgentForm';
 import { AgentTabs } from './components/AgentTabs';
 import { Settings } from './components/Settings';

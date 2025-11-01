@@ -15,15 +15,20 @@ console.log('DevaDoot Popup Injector loaded');
  * Create and inject popup iframe
  */
 function createPopup(data: InjectPopupMessage) {
+  console.log('[POPUP INJECTOR] createPopup called with data:', data);
+
   // Remove existing popup if any
   if (popupIframe) {
+    console.log('[POPUP INJECTOR] Removing existing popup');
     popupIframe.remove();
   }
 
   // Create iframe
   const iframe = document.createElement('iframe');
   iframe.id = 'devadoot-popup';
-  iframe.src = chrome.runtime.getURL('popup/index.html');
+  const popupUrl = chrome.runtime.getURL('popup/index.html');
+  console.log('[POPUP INJECTOR] Popup URL:', popupUrl);
+  iframe.src = popupUrl;
 
   // Style the iframe
   Object.assign(iframe.style, {
@@ -41,11 +46,13 @@ function createPopup(data: InjectPopupMessage) {
   });
 
   // Inject into page
+  console.log('[POPUP INJECTOR] Appending iframe to body');
   document.body.appendChild(iframe);
   popupIframe = iframe;
 
   // Send data to popup after it loads
   iframe.addEventListener('load', () => {
+    console.log('[POPUP INJECTOR] Iframe loaded, sending init message');
     iframe.contentWindow?.postMessage(
       {
         type: 'init',
@@ -60,7 +67,7 @@ function createPopup(data: InjectPopupMessage) {
     );
   });
 
-  console.log('Popup injected for case:', data.caseId);
+  console.log('[POPUP INJECTOR] ✓ Popup iframe created and injected for case:', data.caseId);
 }
 
 /**
@@ -163,6 +170,7 @@ window.addEventListener('message', (event) => {
  * Listen for inject-popup message from background
  */
 onMessageType<InjectPopupMessage>('inject-popup', (message) => {
+  console.log('[POPUP INJECTOR] Received inject-popup message:', message);
   createPopup(message);
 });
 

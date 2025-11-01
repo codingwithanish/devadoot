@@ -57,7 +57,7 @@ export async function runCollectors(
 /**
  * Collect HAR (HTTP Archive) - simplified version using Resource Timing API
  */
-async function collectHAR(tabId: number, url: string): Promise<CollectorResult | null> {
+async function collectHAR(tabId: number, _url: string): Promise<CollectorResult | null> {
   try {
     // Use chrome.debugger for full HAR collection
     // This is a simplified implementation - full HAR requires debugger protocol
@@ -319,9 +319,9 @@ async function collectPerformance(tabId: number): Promise<CollectorResult | null
 /**
  * Collect screenshot
  */
-async function collectScreenshot(tabId: number): Promise<CollectorResult | null> {
+async function collectScreenshot(_tabId: number): Promise<CollectorResult | null> {
   try {
-    const dataUrl = await chrome.tabs.captureVisibleTab(undefined, {
+    const dataUrl = await chrome.tabs.captureVisibleTab({
       format: 'png',
     });
 
@@ -344,7 +344,7 @@ async function collectScreenshot(tabId: number): Promise<CollectorResult | null>
  * Collect screen recording
  * Note: This requires user interaction and is complex to implement
  */
-async function collectScreenRecording(tabId: number): Promise<CollectorResult | null> {
+async function collectScreenRecording(_tabId: number): Promise<CollectorResult | null> {
   try {
     // Screen recording requires tabCapture API and user consent
     // This is a placeholder for the full implementation

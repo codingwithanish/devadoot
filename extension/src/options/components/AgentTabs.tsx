@@ -1,4 +1,3 @@
-import React from 'react';
 import type { AgentConfig } from '@/types';
 
 interface AgentTabsProps {

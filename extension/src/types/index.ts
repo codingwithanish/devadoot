@@ -118,6 +118,7 @@ export interface MarketplaceAgent {
   id: string;
   name: string;
   type: string;
+  category: string;
   description?: string;
   chatEndpoint?: string;
 }
@@ -200,6 +201,7 @@ export interface ExtensionStorage {
   activeCases: Record<number, string>; // tabId -> caseId
   serverUrl: string;
   authToken: string;
+  mode: 'api' | 'dummy';
 }
 
 // Collector Types

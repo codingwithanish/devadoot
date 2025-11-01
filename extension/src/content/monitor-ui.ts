@@ -57,6 +57,19 @@ function startMonitoring(agent: AgentMatch) {
   });
 
   console.log('UI monitoring active on:', container.tagName);
+
+  // Send initial sample immediately to trigger popup (for demo/dummy mode)
+  // This captures the current page state and triggers the agent
+  setTimeout(() => {
+    if (monitoringEnabled && currentAgent) {
+      const initialText = extractReadableText(document.body, 2000);
+      if (initialText.length > 50) {
+        console.log('[UI MONITOR] Sending initial page sample to trigger agent...');
+        changeBuffer.push(initialText);
+        sendSample();
+      }
+    }
+  }, 500); // Wait 500ms for page to settle
 }
 
 /**

@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node create-icons.js:*)"
+      "Bash(node create-icons.js:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

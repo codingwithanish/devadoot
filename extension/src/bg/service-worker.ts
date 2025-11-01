@@ -8,7 +8,6 @@ import { runCollectors } from '@/lib/collectors';
 import { onMessage, sendToTab } from '@/lib/messagebus';
 import type {
   TabState,
-  AgentMatch,
   UISampleMessage,
   APISampleMessage,
   PopupControlMessage,
@@ -24,32 +23,51 @@ apiClient.init();
 console.log('DevaDoot Background Service Worker initialized');
 
 /**
+ * Listen for storage changes to reinitialize API client
+ */
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'sync') {
+    // Check if mode, serverUrl, or authToken changed
+    if (changes.mode || changes.serverUrl || changes.authToken) {
+      console.log('Storage settings changed, reinitializing API client...');
+      apiClient.init();
+    }
+  }
+});
+
+/**
  * Handle tab updates (navigation)
  */
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  console.log(`[SERVICE WORKER] Tab ${tabId} updated - status: ${changeInfo.status}, url: ${tab.url}`);
+
   if (changeInfo.status !== 'complete' || !tab.url) {
     return;
   }
 
   // Don't monitor chrome:// or extension pages
   if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+    console.log(`[SERVICE WORKER] Skipping chrome:// or extension page: ${tab.url}`);
     return;
   }
 
   try {
-    console.log(`Tab ${tabId} navigated to: ${tab.url}`);
+    console.log(`[SERVICE WORKER] Tab ${tabId} navigated to: ${tab.url}`);
 
     // Reset icon to gray
     await setIconColor(tabId, 'gray');
 
     // Notify backend of visit and get matching agents
+    console.log(`[SERVICE WORKER] Calling apiClient.postVisit for: ${tab.url}`);
     const response = await apiClient.postVisit({
       url: tab.url,
       tabId,
     });
 
+    console.log(`[SERVICE WORKER] apiClient.postVisit returned:`, response);
+
     if (response.matches && response.matches.length > 0) {
-      console.log(`Found ${response.matches.length} matching agents for ${tab.url}`);
+      console.log(`[SERVICE WORKER] ✓ Found ${response.matches.length} matching agents for ${tab.url}`);
 
       // Update tab state
       tabStates.set(tabId, {
@@ -60,17 +78,18 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
       // Start monitoring by sending config to content scripts
       for (const match of response.matches) {
+        console.log(`[SERVICE WORKER] Sending start-monitor message for agent: ${match.name}`);
         await sendToTab(tabId, {
           type: 'start-monitor',
           match,
         });
       }
     } else {
-      console.log(`No matching agents for ${tab.url}`);
+      console.log(`[SERVICE WORKER] No matching agents for ${tab.url}`);
       tabStates.delete(tabId);
     }
   } catch (error) {
-    console.error('Error handling tab update:', error);
+    console.error('[SERVICE WORKER] Error handling tab update:', error);
   }
 });
 
@@ -128,10 +147,12 @@ onMessage(async (message, sender) => {
 async function handleUISample(message: UISampleMessage, tabId: number) {
   const { payload, caseInit, welcome, chatMeta, collectors } = message;
 
-  console.log('Evaluating UI sample:', payload.textSample.substring(0, 100));
+  console.log('[SERVICE WORKER] Received UI sample from tab:', tabId);
+  console.log('[SERVICE WORKER] Sample preview:', payload.textSample.substring(0, 100));
 
   try {
     // Evaluate rule on backend
+    console.log('[SERVICE WORKER] Evaluating rule for agent:', payload.agentId);
     const evaluation = await apiClient.evaluateUIRule({
       agentId: payload.agentId,
       textSample: payload.textSample,
@@ -140,16 +161,18 @@ async function handleUISample(message: UISampleMessage, tabId: number) {
       url: payload.url,
     });
 
+    console.log('[SERVICE WORKER] Rule evaluation result:', evaluation);
+
     if (!evaluation.match) {
-      console.log('Rule did not match. Score:', evaluation.score);
+      console.log('[SERVICE WORKER] Rule did not match. Score:', evaluation.score);
       return;
     }
 
-    console.log('Rule matched! Creating case...');
+    console.log('[SERVICE WORKER] ✓ Rule matched! Creating case...');
 
     // Create case
     const { caseId } = await apiClient.createCase(caseInit);
-    console.log(`Case created: ${caseId}`);
+    console.log(`[SERVICE WORKER] Case created: ${caseId}`);
 
     // Store case ID
     activeCases.set(tabId, caseId);
@@ -161,20 +184,25 @@ async function handleUISample(message: UISampleMessage, tabId: number) {
     }
 
     // Set icon to green
+    console.log('[SERVICE WORKER] Setting icon to green');
     await setIconColor(tabId, 'green');
 
     // Run collectors and upload
+    console.log('[SERVICE WORKER] Running collectors...');
     await runCollectorsAndUpload(caseId, tabId, payload.url, collectors);
 
     // Inject popup
+    console.log('[SERVICE WORKER] Injecting popup with welcome:', welcome);
     await injectPopup(tabId, {
       caseId,
       welcome,
       chatMeta,
-      agentName: caseInit.ruleSnapshot.nl,
+      agentName: caseInit.agentId,
     });
+
+    console.log('[SERVICE WORKER] ✓ Popup injection complete!');
   } catch (error) {
-    console.error('Error handling UI sample:', error);
+    console.error('[SERVICE WORKER] Error handling UI sample:', error);
   }
 }
 
@@ -313,21 +341,26 @@ async function injectPopup(
   tabId: number,
   data: { caseId: string; welcome: string; chatMeta: any; agentName: string }
 ) {
-  console.log('Injecting popup...');
+  console.log('[SERVICE WORKER] injectPopup called for tab:', tabId);
+  console.log('[SERVICE WORKER] Popup data:', data);
 
   try {
+    console.log('[SERVICE WORKER] Executing popup-injector script...');
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ['content/popup-injector.js'],
     });
 
+    console.log('[SERVICE WORKER] Popup-injector script executed, sending inject-popup message...');
     // Send popup data
     await sendToTab(tabId, {
       type: 'inject-popup',
       ...data,
     });
+
+    console.log('[SERVICE WORKER] inject-popup message sent!');
   } catch (error) {
-    console.error('Error injecting popup:', error);
+    console.error('[SERVICE WORKER] Error injecting popup:', error);
   }
 }
 

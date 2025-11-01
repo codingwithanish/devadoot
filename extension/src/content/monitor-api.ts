@@ -54,7 +54,11 @@ function installFetchInterceptor() {
     const startTime = performance.now();
     const [resource, init] = args;
 
-    const url = typeof resource === 'string' ? resource : resource.url;
+    const url = typeof resource === 'string'
+      ? resource
+      : resource instanceof Request
+        ? resource.url
+        : resource.toString();
     const method = init?.method || 'GET';
 
     try {
@@ -112,7 +116,7 @@ function installXHRInterceptor() {
     return originalXHROpen.apply(this, [method, url, ...rest] as any);
   };
 
-  XMLHttpRequest.prototype.send = function (...args: any[]) {
+  XMLHttpRequest.prototype.send = function (body?: XMLHttpRequestBodyInit | Document | null) {
     const xhr = this;
     const requestInfo = (xhr as any).__devadoot;
 
@@ -144,7 +148,7 @@ function installXHRInterceptor() {
       });
     }
 
-    return originalXHRSend.apply(this, args);
+    return originalXHRSend.apply(this, [body]);
   };
 }
 

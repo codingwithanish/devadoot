@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { AgentConfig, MarketplaceAgent } from '@/types';
 import { validateAgentConfig, validateUrlPattern } from '@/lib/rules';
 import { parseRuleNLtoJSON, aiAvailable } from '@/lib/ai';
 import { apiClient } from '@/bg/api-client';
+import { MarketplacePanel } from './MarketplacePanel';
 
 interface AgentFormProps {
   agent: AgentConfig;
@@ -17,6 +18,7 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
   const [errors, setErrors] = useState<string[]>([]);
   const [hasAI, setHasAI] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showMarketplace, setShowMarketplace] = useState(false);
 
   // Check for AI availability
   useEffect(() => {
@@ -127,6 +129,17 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
     }
   };
 
+  const handleSelectMarketplaceAgent = (agentId: string) => {
+    handleChange('marketplaceId', agentId);
+  };
+
+  const getSelectedMarketplaceAgent = () => {
+    if (!formData.marketplaceId) return null;
+    return marketplaceAgents.find(a => a.id === formData.marketplaceId);
+  };
+
+  const selectedMarketplaceAgent = getSelectedMarketplaceAgent();
+
   return (
     <div className="agent-form">
       <div className="form-header">
@@ -226,17 +239,30 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
       {formData.source === 'marketplace' ? (
         <div className="form-section">
           <label>Select Marketplace Agent *</label>
-          <select
-            value={formData.marketplaceId || ''}
-            onChange={(e) => handleChange('marketplaceId', e.target.value)}
-          >
-            <option value="">-- Select an agent --</option>
-            {marketplaceAgents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name} - {agent.description}
-              </option>
-            ))}
-          </select>
+          {selectedMarketplaceAgent ? (
+            <div className="selected-agent-display">
+              <div className="selected-agent-info">
+                <h4>{selectedMarketplaceAgent.name}</h4>
+                <p className="agent-category">{selectedMarketplaceAgent.category}</p>
+                <p className="agent-description">{selectedMarketplaceAgent.description}</p>
+              </div>
+              <button
+                type="button"
+                className="change-agent-btn"
+                onClick={() => setShowMarketplace(true)}
+              >
+                Change Agent
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="browse-marketplace-btn"
+              onClick={() => setShowMarketplace(true)}
+            >
+              Browse Marketplace
+            </button>
+          )}
         </div>
       ) : (
         <div className="form-section">
@@ -248,6 +274,14 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
             placeholder="wss://my-agent.example.com/chat"
           />
         </div>
+      )}
+
+      {showMarketplace && (
+        <MarketplacePanel
+          agents={marketplaceAgents}
+          onSelect={handleSelectMarketplaceAgent}
+          onClose={() => setShowMarketplace(false)}
+        />
       )}
 
       <div className="form-section">
