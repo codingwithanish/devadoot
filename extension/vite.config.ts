@@ -17,6 +17,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      input: {
+        popup: path.resolve(__dirname, 'src/popup/index.html'),
+      },
+    },
   },
   server: {
     port: 5173,

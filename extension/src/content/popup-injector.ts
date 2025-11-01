@@ -26,7 +26,7 @@ function createPopup(data: InjectPopupMessage) {
   // Create iframe
   const iframe = document.createElement('iframe');
   iframe.id = 'devadoot-popup';
-  const popupUrl = chrome.runtime.getURL('popup/index.html');
+  const popupUrl = chrome.runtime.getURL('src/popup/index.html');
   console.log('[POPUP INJECTOR] Popup URL:', popupUrl);
   iframe.src = popupUrl;
 

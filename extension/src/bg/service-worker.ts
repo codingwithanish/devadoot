@@ -345,14 +345,9 @@ async function injectPopup(
   console.log('[SERVICE WORKER] Popup data:', data);
 
   try {
-    console.log('[SERVICE WORKER] Executing popup-injector script...');
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ['content/popup-injector.js'],
-    });
-
-    console.log('[SERVICE WORKER] Popup-injector script executed, sending inject-popup message...');
-    // Send popup data
+    // popup-injector.ts is already loaded as a content script
+    // Just send the inject-popup message
+    console.log('[SERVICE WORKER] Sending inject-popup message to content script...');
     await sendToTab(tabId, {
       type: 'inject-popup',
       ...data,

@@ -35,7 +35,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content/monitor-ui.ts", "src/content/monitor-api.ts"],
+      "js": ["src/content/monitor-ui.ts", "src/content/monitor-api.ts", "src/content/popup-injector.ts"],
       "run_at": "document_idle"
     }
   ],
