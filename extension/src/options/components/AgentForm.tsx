@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import type { AgentConfig, MarketplaceAgent } from '@/types';
 import { validateAgentConfig, validateUrlPattern } from '@/lib/rules';
 import { parseRuleNLtoJSON, aiAvailable } from '@/lib/ai';
+import { apiClient } from '@/bg/api-client';
 
 interface AgentFormProps {
   agent: AgentConfig;
-  onUpdate: (agent: AgentConfig) => void;
+  onUpdate: (agent: AgentConfig) => Promise<void>;
 }
 
 export function AgentForm({ agent, onUpdate }: AgentFormProps) {
@@ -15,6 +16,7 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
   const [patternInput, setPatternInput] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const [hasAI, setHasAI] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Check for AI availability
   useEffect(() => {
@@ -28,12 +30,19 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
 
   // Load marketplace agents
   useEffect(() => {
-    // This would normally fetch from the API
-    // For now, using mock data
-    setMarketplaceAgents([
-      { id: 'chat-support-ai', name: 'Chat Support AI', type: 'chat', description: 'Live support chat' },
-      { id: 'error-analyzer', name: 'Error Analyzer', type: 'analysis', description: 'Automatic error analysis' },
-    ]);
+    const loadMarketplaceAgents = async () => {
+      try {
+        await apiClient.init();
+        const agents = await apiClient.getMarketplaceAgents();
+        setMarketplaceAgents(agents);
+      } catch (error) {
+        console.error('Failed to load marketplace agents:', error);
+        // Fallback to empty array if API fails
+        setMarketplaceAgents([]);
+      }
+    };
+
+    loadMarketplaceAgents();
   }, []);
 
   const handleChange = (field: keyof AgentConfig, value: any) => {
@@ -96,7 +105,7 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const validation = validateAgentConfig(formData);
 
     if (!validation.valid) {
@@ -105,16 +114,25 @@ export function AgentForm({ agent, onUpdate }: AgentFormProps) {
     }
 
     setErrors([]);
-    onUpdate(formData);
-    alert('Agent saved successfully!');
+    setSaving(true);
+
+    try {
+      await onUpdate(formData);
+      alert('Agent saved successfully!');
+    } catch (error) {
+      // Error already handled by parent component
+      console.error('Save failed:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="agent-form">
       <div className="form-header">
         <h2>Agent Configuration</h2>
-        <button className="save-btn" onClick={handleSave}>
-          Save Agent
+        <button className="save-btn" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving...' : 'Save Agent'}
         </button>
       </div>
 

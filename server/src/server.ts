@@ -35,12 +35,12 @@ export function createApp() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // API routes
-  app.use('/events', eventsRouter);
-  app.use('/rules', rulesRouter);
-  app.use('/cases', casesRouter);
-  app.use('/cases', createUploadsRouter());
-  app.use('/agents', agentsRouter);
+  // API routes with /api prefix
+  app.use('/api/events', eventsRouter);
+  app.use('/api/rules', rulesRouter);
+  app.use('/api/cases', casesRouter);
+  app.use('/api/cases', createUploadsRouter());
+  app.use('/api/agents', agentsRouter);
 
   // Error handling
   app.use(errorHandler);

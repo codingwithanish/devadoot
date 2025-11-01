@@ -10,6 +10,7 @@ import type {
   CaseCreateRequest,
   CaseCreateResponse,
   MarketplaceAgent,
+  AgentConfig,
 } from '@/types';
 
 class ApiClient {
@@ -59,7 +60,7 @@ class ApiClient {
   }
 
   async postVisit(data: VisitRequest): Promise<VisitResponse> {
-    return this.fetch<VisitResponse>('/events/visit', {
+    return this.fetch<VisitResponse>('/api/events/visit', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -68,7 +69,7 @@ class ApiClient {
   async evaluateUIRule(
     data: RuleEvaluationRequest
   ): Promise<RuleEvaluationResponse> {
-    return this.fetch<RuleEvaluationResponse>('/rules/evaluate/ui', {
+    return this.fetch<RuleEvaluationResponse>('/api/rules/evaluate/ui', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -77,21 +78,21 @@ class ApiClient {
   async evaluateAPIRule(
     data: RuleEvaluationRequest
   ): Promise<RuleEvaluationResponse> {
-    return this.fetch<RuleEvaluationResponse>('/rules/evaluate/api', {
+    return this.fetch<RuleEvaluationResponse>('/api/rules/evaluate/api', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async createCase(data: CaseCreateRequest): Promise<CaseCreateResponse> {
-    return this.fetch<CaseCreateResponse>('/cases', {
+    return this.fetch<CaseCreateResponse>('/api/cases', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async closeCase(caseId: string): Promise<{ ok: boolean }> {
-    return this.fetch<{ ok: boolean }>(`/cases/${caseId}/close`, {
+    return this.fetch<{ ok: boolean }>(`/api/cases/${caseId}/close`, {
       method: 'POST',
     });
   }
@@ -110,7 +111,7 @@ class ApiClient {
       formData.append('file', data);
     }
 
-    const url = `${this.baseUrl}/cases/${caseId}/upload`;
+    const url = `${this.baseUrl}/api/cases/${caseId}/upload`;
     const headers: HeadersInit = {};
 
     if (this.authToken) {
@@ -137,11 +138,35 @@ class ApiClient {
   }
 
   async getMarketplaceAgents(): Promise<MarketplaceAgent[]> {
-    return this.fetch<MarketplaceAgent[]>('/agents/marketplace');
+    return this.fetch<MarketplaceAgent[]>('/api/agents/marketplace');
   }
 
   async getAgentMatches(site: string): Promise<VisitResponse> {
-    return this.fetch<VisitResponse>(`/agents/match?site=${encodeURIComponent(site)}`);
+    return this.fetch<VisitResponse>(`/api/agents/match?site=${encodeURIComponent(site)}`);
+  }
+
+  async getAgents(): Promise<AgentConfig[]> {
+    return this.fetch<AgentConfig[]>('/api/agents');
+  }
+
+  async createAgent(agent: AgentConfig): Promise<AgentConfig> {
+    return this.fetch<AgentConfig>('/api/agents', {
+      method: 'POST',
+      body: JSON.stringify(agent),
+    });
+  }
+
+  async updateAgent(agent: AgentConfig): Promise<AgentConfig> {
+    return this.fetch<AgentConfig>(`/api/agents/${agent.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(agent),
+    });
+  }
+
+  async deleteAgent(agentId: string): Promise<{ ok: boolean }> {
+    return this.fetch<{ ok: boolean }>(`/api/agents/${agentId}`, {
+      method: 'DELETE',
+    });
   }
 }
 

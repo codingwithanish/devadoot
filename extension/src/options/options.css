@@ -59,6 +59,8 @@
   background: white;
   border-right: 1px solid #e5e7eb;
   padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
 }
 
 .create-btn {
@@ -144,6 +146,8 @@
   flex: 1;
   padding: 32px;
   max-width: 800px;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
 }
 
 .agent-form {
@@ -370,6 +374,8 @@
   flex: 1;
   padding: 32px;
   max-width: 600px;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
 }
 
 .settings-container h2 {

@@ -30,12 +30,15 @@ Start PostgreSQL and MinIO (S3-compatible storage):
 ```bash
 # Start Docker services
 docker-compose up -d
+#To down docker services
+docker compose down -v
 
 # Verify services are running
 docker-compose ps
 ```
 
 You should see:
+
 - PostgreSQL running on `localhost:5432`
 - MinIO running on `localhost:9000` (API) and `localhost:9001` (Console)
 
@@ -75,6 +78,9 @@ pnpm install
 
 # Start development build (with watch mode)
 pnpm dev
+
+# For cleaning the workspace
+pnpm clean
 ```
 
 The extension will be built to `extension/dist/`.
@@ -120,6 +126,7 @@ The extension requires icon files in the `extension/public/icons/` directory:
 **Note**: These icon files are placeholders and should be created or replaced with actual icon images. You can use any image editor to create simple 16x16, 32x32, 48x48, and 128x128 PNG files.
 
 Quick way to create placeholder icons:
+
 ```bash
 mkdir -p extension/public/icons
 # Use an online tool or image editor to create basic gray and green square icons
@@ -141,6 +148,7 @@ convert -size 128x128 xc:green extension/public/icons/green-128.png
 ## Accessing Services
 
 ### MinIO Console
+
 - URL: `http://localhost:9001`
 - Username: `minioadmin`
 - Password: `minioadmin`
@@ -148,6 +156,7 @@ convert -size 128x128 xc:green extension/public/icons/green-128.png
 Browse uploaded artifacts in the `devadoot` bucket.
 
 ### Prisma Studio (Database GUI)
+
 ```bash
 cd server
 pnpm prisma:studio
@@ -156,6 +165,7 @@ pnpm prisma:studio
 Access at `http://localhost:5555` to view and manage database records.
 
 ### API Health Check
+
 ```bash
 curl http://localhost:8080/health
 ```
@@ -165,16 +175,19 @@ Should return: `{"status":"ok","timestamp":"..."}`
 ## Building for Production
 
 ### Extension
+
 ```bash
 cd extension
 pnpm build
 ```
 
 The production build will be in `extension/dist/`. You can then:
+
 1. Zip the `dist` folder
 2. Upload to Chrome Web Store
 
 ### Server
+
 ```bash
 cd server
 pnpm build
@@ -182,6 +195,7 @@ pnpm start
 ```
 
 For production deployment:
+
 - Use a proper PostgreSQL instance (not Docker)
 - Use AWS S3 or a production-ready object storage
 - Set `NODE_ENV=production`
@@ -191,25 +205,30 @@ For production deployment:
 ## Troubleshooting
 
 ### Extension not loading
+
 - Make sure you're using Chrome 127+
 - Check that `extension/dist` folder exists and contains the built files
 - Try removing and re-adding the extension
 
 ### Server won't start
+
 - Verify Docker services are running: `docker-compose ps`
 - Check database connection in `.env`
 - Look for error messages in the terminal
 
 ### Icons not showing
+
 - Create placeholder icon files in `extension/public/icons/`
 - Rebuild the extension: `pnpm build` or restart `pnpm dev`
 
 ### Chat popup not appearing
+
 - Check browser console for errors (F12)
 - Verify the rule is matching correctly (check server logs)
 - Ensure the agent is configured with a valid endpoint
 
 ### Artifacts not uploading
+
 - Check MinIO is running: `docker-compose ps`
 - Verify S3 configuration in `server/.env`
 - Check server logs for upload errors
@@ -217,10 +236,12 @@ For production deployment:
 ## Development Tips
 
 ### Hot Reloading
+
 - **Extension**: Run `pnpm dev` for automatic rebuilds on file changes
 - **Server**: Run `pnpm dev` for automatic server restart with tsx watch
 
 ### Debugging
+
 - **Extension**: Use Chrome DevTools on extension pages
   - Background script: `chrome://extensions/` → DevaDoot → "Inspect views: service worker"
   - Content script: F12 on any monitored page
@@ -233,7 +254,9 @@ For production deployment:
   ```
 
 ### Database Changes
+
 After modifying `server/prisma/schema.prisma`:
+
 ```bash
 cd server
 pnpm prisma migrate dev --name describe_your_changes
@@ -250,6 +273,7 @@ pnpm prisma:generate
 ## Support
 
 For issues or questions:
+
 - Check the [main README](./README.md)
 - Review the [complete documentation](./devadoot.md)
 - Open an issue on GitHub
